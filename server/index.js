@@ -9,13 +9,15 @@ var dbURI = 'mongodb://localhost/findwords';
 var connection = mongoose.connect(dbURI);
 const grid = mongoose.model('Grid', { grid: Object, word_list: Object, count: String });
 var game = undefined;
-var gameStartTime = Date.now()
+var gameStartTime = undefined
 var stopTime = undefined;
+var words = {}
 
 const COLLDOWN = 1 * 1000;
 const DURATION = 120 * 1000;
 const UPDATE_LEADERBOARD = 2 * 1000;
 const USERS = 10000;
+const SAMPLE_SIZE = 10;
 
 
 app.get("/", function(req, res){
@@ -37,7 +39,7 @@ const calculateScore = async function(msg) {
   const userId = parseInt(msg["_id"], 16) % USERS;
   let newScore;
   let alreadyFound = false;
-  if (words[userId].includes(word)) {
+  if (words[userId] !== undefined && words[userId].includes(word)) {
     newScore = 0;
     alreadyFound = false;
   }
@@ -50,17 +52,18 @@ const calculateScore = async function(msg) {
 const stopGame = async function() {
   console.log("stoping game")
   io.emit("game ended")
-  game = undefined;
+  gameStartTime = game = undefined;
   setTimeout(startGame, COLLDOWN)
 }
 
 const startGame = async function() {
-  grid.findOne().then(function(result) {
-    newGame = game = result;
+  grid.find().skip(parseInt(Math.random() * 10)).limit(1).then(function(result) {
+    newGame = game = result[0];
+    gameStartTime = Date.now();
     game["leaderboard"] = {}
     newGame["word_list"] = undefined;
     io.emit("game started", {"grid": game["grid"], "time_left": DURATION});
-    stopTime = setTimeout(stopGame, DURATION);
+    setTimeout(stopGame, DURATION);
   })
 }
 
@@ -69,8 +72,8 @@ setInterval(sendLeaderboard, UPDATE_LEADERBOARD);
 io.on("connection", function(socket){
   console.log("a user connected");
 
-  if(game && stopTime)  {
-    timeLeft = (Date.now() - gameStartTime) / 1000;
+  if(game && gameStartTime)  {
+    timeLeft = DURATION + gameStartTime - Date.now();
     socket.emit("game started", {"grid": game["grid"], "time_left": timeLeft});
   }
 

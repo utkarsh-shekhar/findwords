@@ -112,7 +112,8 @@
 
         var socket = io();
         socket.on('game started', function(msg) {
-          gameStart(msg.grid, msg.time_left/1000);
+          console.log(msg);
+          gameStart(msg.grid, parseInt(msg.time_left/1000));
           gameOver = false;
 
         })
@@ -128,7 +129,8 @@
           console.log(msg)
         })
 
-        function gameStart(grid, seconds) {
+        function gameStart(grid, time) {
+          seconds = time;
           var gridCell;
           $('.gamegrid').html('');
           for(var i=0; i<4; i++) {

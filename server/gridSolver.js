@@ -59,6 +59,7 @@ class GridSolver {
     this.size = grid.length;
     this.dictionary = dictionary;
     this.wordList = [];
+    this.count = 0
     for(let i = 0; i < this.size; i++) {
       for(let j = 0; j < this.size; j++) {
         this.findWords(i, j);
