@@ -5,12 +5,19 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start" : "node server/index.js"
+    "start": "nodemon node server/index.js",
+    "eslint": "eslint ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.15.2",
+    "mongoose": "^5.0.10",
+    "pg": "^7.4.1",
     "socket.io": "^2.0.4"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.0",
+    "nodemon": "^1.17.2"
   }
 }
