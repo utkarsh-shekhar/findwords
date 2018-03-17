@@ -13,10 +13,16 @@ const words = fs.readFileSync(__dirname + "/wordlist.txt", "utf-8")
 
 words.forEach(word => dictionary.add(word));
 
+var uniqEs6 = (arrArg) => {
+  return arrArg.filter((elem, pos, arr) => {
+    return arr.indexOf(elem) == pos;
+  });
+}
+
 let grid = generator.generate();
-let wordlist = solver.solve(grid, dictionary);
+let wordlist = uniqEs6(solver.solve(grid, dictionary));
 let countGreaterThan3 = wordlist.filter(word => word.length > 3).length;
-while (wordlist.length < 15) {
+while (wordlist.length < 35) {
   grid = generator.generate();
   wordlist = solver.solve(grid, dictionary);
   countGreaterThan3 = wordlist.filter(word => word.length > 3).length;
