@@ -1,11 +1,29 @@
 class GridGenerator {
   constructor() {
     this.size = 4;
-    this.namespace = [
-      {
+    this.vowels = [
+          {
         character: "A",
         score: 1
       },
+      {
+        character: "E",
+        score: 1
+      },
+      {
+        character: "I",
+        score: 1
+      },
+      {
+        character: "O",
+        score: 1
+      },
+      {
+        character: "U",
+        score: 1
+      },
+    ];
+    this.consonants = [
       {
         character: "B",
         score: 1
@@ -19,10 +37,6 @@ class GridGenerator {
         score: 1
       },
       {
-        character: "E",
-        score: 1
-      },
-      {
         character: "F",
         score: 1
       },
@@ -32,10 +46,6 @@ class GridGenerator {
       },
       {
         character: "H",
-        score: 1
-      },
-      {
-        character: "I",
         score: 1
       },
       {
@@ -59,10 +69,6 @@ class GridGenerator {
         score: 1
       },
       {
-        character: "O",
-        score: 1
-      },
-      {
         character: "P",
         score: 1
       },
@@ -80,10 +86,6 @@ class GridGenerator {
       },
       {
         character: "T",
-        score: 1
-      },
-      {
-        character: "U",
         score: 1
       },
       {
@@ -106,7 +108,7 @@ class GridGenerator {
         character: "Z",
         score: 1
       }
-    ]
+    ];
   }
 
   generate() {
@@ -114,8 +116,16 @@ class GridGenerator {
     for(let i = 0; i < this.size; i++) {
       let row = [];
       for(let j = 0; j < this.size; j++) {
-        let index = this.getRandomInt(0, this.namespace.length - 1);
-        row.push(this.namespace[index]);
+        const probability = Math.random();
+        let index, alphabetArray;
+        if(probability < 0.4) {
+          index = this.getRandomInt(0, this.vowels.length - 1);
+          alphabetArray = this.vowels;
+        } else {
+          index = this.getRandomInt(0, this.consonants.length - 1);
+          alphabetArray = this.consonants;
+        }
+        row.push(alphabetArray[index]);
       }
       grid.push(row);
     }

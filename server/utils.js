@@ -18,7 +18,7 @@ function generateGrid() {
   let grid = generator.generate();
   let wordlist = solver.solve(grid, dictionary);
   let countGreaterThan3 = wordlist.filter(word => word.length > 3).length;
-  while (wordlist.length > 100 && countGreaterThan3 > 25) {
+  while (wordlist.length > 50 && countGreaterThan3 > 15) {
     grid = generator.generate();
     wordlist = solver.solve(grid, dictionary);
     countGreaterThan3 = wordlist.filter(word => word.length > 3).length;
