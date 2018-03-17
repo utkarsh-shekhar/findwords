@@ -108,6 +108,23 @@ class GridGenerator {
       }
     ]
   }
+
+  generate() {
+    let grid = [];
+    for(let i = 0; i < this.size; i++) {
+      let row = [];
+      for(let j = 0; j < this.size; j++) {
+        let index = this.getRandomInt(0, this.namespace.length - 1);
+        row.push(this.namespace[index]);
+      }
+      grid.push(row);
+    }
+    return grid;
+  }
+
+  getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 }
 
 module.exports = GridGenerator;
