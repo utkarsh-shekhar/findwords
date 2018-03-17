@@ -103,6 +103,22 @@
       $(function () {
 
         var socket = io();
+        socket.on('game started', function(msg) {
+          console.log('game started')
+          console.log(msg)
+        })
+        socket.on('game ended', function(msg) {
+          console.log('game ended')
+          console.log(msg)
+        })
+        socket.on('leaderboard', function(msg) {
+          console.log('leaderboard')
+          console.log(msg)
+        })
+        socket.on('score', function(msg) {
+          console.log('score')
+          console.log(msg)
+        })
         var selecting = false;
         var selectedCoordinates = [];
         var currentWord = '';

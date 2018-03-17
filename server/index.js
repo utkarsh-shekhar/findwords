@@ -9,6 +9,7 @@ var dbURI = 'mongodb://localhost/findwords';
 var connection = mongoose.connect(dbURI);
 const grid = mongoose.model('Grid', { grid: Object, word_list: Object, count: String });
 var game = undefined;
+var stopTime = undefined;
 
 app.get("/", function(req, res){
   res.sendFile(path.resolve(__dirname+"/../client/index.html"));
@@ -52,8 +53,8 @@ const startGame = async function() {
     newGame = game = result;
     game["leaderboard"] = {}
     newGame["word_list"] = undefined;
-    io.emit("game started", newGame);
-    setTimeout(stopGame, 1000);
+    io.emit("game started", {"grid": game["grid"], "time_left": 2000});
+    stopTime = setTimeout(stopGame, 2000);
   })
 }
 
@@ -62,8 +63,9 @@ setInterval(sendLeaderboard, 1000);
 io.on("connection", function(socket){
   console.log("a user connected");
 
-  if(game)  {
-    socket.emit("game started", game);
+  if(game && stopTime)  {
+    timeLeft = Math.ceil((timeout._idleStart + timeout._idleTimeout - Date.now()) / 1000);
+    socket.emit("game started", {"grid": game["grid"], "time_left": timeLeft});
   }
 
   socket.on("calculate score", calculateScore);
