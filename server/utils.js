@@ -1,4 +1,4 @@
-function getGrids() {
+function generateGrid() {
   return {
     "grid": [
       [{"character": "A", "score": 1},{"character": "A", "score": 1},{"character": "A", "score": 1},{"character": "A", "score": 1}],
@@ -11,6 +11,11 @@ function getGrids() {
   };
 }
 
-function getScoure(list, word) {
+function getScore(list, word) {
   return 10;
+}
+
+module.exports = {
+  "generateGrid": generateGrid,
+  "getScore": getScore
 }
