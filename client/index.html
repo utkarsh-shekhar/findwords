@@ -101,15 +101,23 @@
     <script>
 
       $(function () {
+        var gameOver = true;
+        var selecting = false;
+        var selectedCoordinates = [];
+        var currentWord = '';
+        var lastCoordinate = '';
+        var seconds;
+        var timerPromise;
+
 
         var socket = io();
         socket.on('game started', function(msg) {
-          console.log('game started')
-          console.log(msg)
+          gameStart(msg.grid, msg.time_left/1000);
+          gameOver = false;
+
         })
         socket.on('game ended', function(msg) {
-          console.log('game ended')
-          console.log(msg)
+          gameOver = true;
         })
         socket.on('leaderboard', function(msg) {
           console.log('leaderboard')
@@ -119,24 +127,13 @@
           console.log('score')
           console.log(msg)
         })
-        var selecting = false;
-        var selectedCoordinates = [];
-        var currentWord = '';
-        var lastCoordinate = '';
-        var seconds;
-        var timerPromise;
 
-        var grid = [[{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
-        [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
-        [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
-        [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}]];
-
-        function gameStart(grid) {
-          seconds = 120;
+        function gameStart(grid, seconds) {
           var gridCell;
+          $('.gamegrid').html('');
           for(var i=0; i<4; i++) {
             for(var j=0; j<4; j++) {
-              gridCell = $('<div class="cell cell-' + j + '"><div class="selectable"><span>'+ grid[i][j].score+'</span><div class="alphabet">' + grid[i][j].char + '</div></div></div>');
+              gridCell = $('<div class="cell cell-' + j + '"><div class="selectable"><span>'+ grid[i][j].score+'</span><div class="alphabet">' + grid[i][j].character + '</div></div></div>');
               gridCell.bind('mousedown', getMouseDown(i, j, grid[i][j]));
               $('.gamegrid').append(gridCell);
               
@@ -158,10 +155,11 @@
 
         function getMouseDown(i, j, gridCell) {
           return function(event) {
+            if(gameOver) return;
             event.preventDefault();
             event.stopPropagation();
             selecting = true;
-            currentWord = gridCell.char;
+            currentWord = gridCell.character;
             lastCoordinate = ''+i+j;
             selectedCoordinates = [lastCoordinate];
             $(event.currentTarget).find('.selectable').addClass('selected');
@@ -170,6 +168,7 @@
 
         function getMouseOver(i, j, gridCell) {
           return function(event) {
+            if(gameOver) return;
             event.preventDefault();
             event.stopPropagation();
             if (!selecting) return;
@@ -181,30 +180,20 @@
             }
             lastCoordinate = coordinate;
             selectedCoordinates.push(coordinate);
-            currentWord += gridCell.char;
+            currentWord += gridCell.character;
             $(event.currentTarget).addClass('selected');
           }
         }
 
         function postWord() {
-          if(currentWord.length == 0) return;
-          socket.emit('attempt_word', currentWord);
+          if(gameOver || currentWord.length == 0) return;
+          socket.emit('calculate score',{word:currentWord} );
           selecting = false;
           currentWord = '';
           selectedCoordinates = [];
           $('.selected').removeClass('selected');
         }
 
-
-        gameStart(grid);
-
-      
-        
-        $('form').submit(function(){
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
-          return false;
-        });
       });
     </script>
   </body>
