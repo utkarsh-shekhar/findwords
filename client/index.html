@@ -14,13 +14,35 @@
     </style>
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+    <div class="game-arena">
+      <div class="leaderboards">
+
+      </div>
+      <div class="gameboard">
+
+      </div>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
+
+    var grid = [[{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
+    [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
+    [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
+    [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}]];
+    function gameStart(grid) {
+      debugger;
+      var gridCell;
+      for(var i=0; i<4; i++) {
+        for(var j=0; j<4; j++) {
+          gridCell = $('<div class="cell">' + grid[i][j].char + '<div>');
+          $('.gameboard').append(gridCell);
+        }
+      }
+    }
+
+    gameStart(grid);
+
       $(function () {
         var socket = io();
         $('form').submit(function(){
