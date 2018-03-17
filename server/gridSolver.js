@@ -42,7 +42,7 @@ class GridSolver {
     let word = prevWord + this.grid[x][y].character;
     let wordStatus = this.dictionary.search(word);
     console.log(word, wordStatus)
-    if(wordStatus.status){
+    if(word.length > 2 && wordStatus.status){
       this.count++;
       this.wordList.push(word);
     }

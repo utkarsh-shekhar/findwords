@@ -15,21 +15,19 @@ function generateGrid() {
 
   words.forEach(word => dictionary.add(word));
 
-  let grids = [];
-  for(let i = 0; i <= 200; i++) {
-    let grid = generator.generate();
-    let wordlist = solver.solve(grid, dictionary);
-    grids.push({
-      grid,
-      wordlist,
-      count: wordlist.length
-    });
+  let grid = generator.generate();
+  let wordlist = solver.solve(grid, dictionary);
+  let countGreaterThan3 = wordlist.filter(word => word.length > 3).length;
+  while (wordlist.length > 100 && countGreaterThan3 > 25) {
+    grid = generator.generate();
+    wordlist = solver.solve(grid, dictionary);
+    countGreaterThan3 = wordlist.filter(word => word.length > 3).length;
   }
-  let grr = grids.filter((grid) => {
-    let greaterThan3Length = grid.wordlist.filter(word => word.length > 3).length;
-    return grid.count > 150 && greaterThan3Length > 20;
-  });
-  return grr[0];
+  return {
+    grid,
+    word_list: wordlist,
+    count: wordlist.length
+  };
 }
 
 function getScore(grid, list, word) {
