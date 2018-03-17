@@ -9,7 +9,14 @@ var dbURI = 'mongodb://localhost/findwords';
 var connection = mongoose.connect(dbURI);
 const grid = mongoose.model('Grid', { grid: Object, word_list: Object, count: String });
 var game = undefined;
+var gameStartTime = Date.now()
 var stopTime = undefined;
+
+const COLLDOWN = 1 * 1000;
+const DURATION = 120 * 1000;
+const UPDATE_LEADERBOARD = 2 * 1000;
+const USERS = 10000;
+
 
 app.get("/", function(req, res){
   res.sendFile(path.resolve(__dirname+"/../client/index.html"));
@@ -26,16 +33,15 @@ const sendLeaderboard = function() {
 }
 
 const calculateScore = async function(msg) {
-  const wordList = game["word_list"];
   const word = msg["word"];
-  const userId = parseInt(msg["_id"], 16) % 100000;
+  const userId = parseInt(msg["_id"], 16) % USERS;
   let newScore;
   let alreadyFound = false;
   if (words[userId].includes(word)) {
     newScore = 0;
     alreadyFound = false;
   }
-  newScore = utils.getScore(wordList, word);
+  newScore = utils.getScore(game["grid"], game["word_list"], word);
   const score = game["leaderboard"][userId] + newScore;
   game["leaderboard"][userId] = score;
   socket.emit("socre", {"user_id": userId, "score": score, "valid": newScore > 0, "already_found": alreadyFound})
@@ -45,7 +51,7 @@ const stopGame = async function() {
   console.log("stoping game")
   io.emit("game ended")
   game = undefined;
-  setTimeout(startGame, 1000)
+  setTimeout(startGame, COLLDOWN)
 }
 
 const startGame = async function() {
@@ -53,18 +59,18 @@ const startGame = async function() {
     newGame = game = result;
     game["leaderboard"] = {}
     newGame["word_list"] = undefined;
-    io.emit("game started", {"grid": game["grid"], "time_left": 2000});
-    stopTime = setTimeout(stopGame, 2000);
+    io.emit("game started", {"grid": game["grid"], "time_left": DURATION});
+    stopTime = setTimeout(stopGame, DURATION);
   })
 }
 
-setInterval(sendLeaderboard, 1000);
+setInterval(sendLeaderboard, UPDATE_LEADERBOARD);
 
 io.on("connection", function(socket){
   console.log("a user connected");
 
   if(game && stopTime)  {
-    timeLeft = Math.ceil((timeout._idleStart + timeout._idleTimeout - Date.now()) / 1000);
+    timeLeft = (Date.now() - gameStartTime) / 1000;
     socket.emit("game started", {"grid": game["grid"], "time_left": timeLeft});
   }
 
