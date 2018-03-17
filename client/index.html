@@ -8,43 +8,182 @@
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
+      
+
+
+    .selectable {
+        border-radius: 7px;
+        top: 15px;
+        position: absolute;
+        width: 95px;
+        height: 95px;
+        background: -webkit-radial-gradient(top, ellipse cover,  #FFDD6B 1%, #FFB401 29%, #E87706 99%);
+        left: 15px;
+    }
+
+   .alphabet {
+    width: 100%;
+    font-size: 70px;
+    padding: 10px 0 0 20px;
+    height: 100%;
+}
+
+.selected.selectable {
+    background: -webkit-radial-gradient(top, ellipse cover,  #FFDD6B 99%, #FFB401 29%, #E87706 1%);
+}
+
+.cell {
+    position: relative;
+    background-color: black;
+    width: 125px;
+    height: 125px;
+    float: left;
+}
+
+.gamegrid {
+    border: 1px solid;
+    width: 502px;
+    height: 502px;
+    margin: auto;
+}
+
+.selectable span {
+  position: absolute;
+  /*border: 1px solid;*/
+  padding: 3px;
+  font-size: 11px;
+}
+
+.leaderboards {
+  width: 40%;
+  height: 700px;
+  float: left;
+  overflow-x: auto;
+  background: -webkit-radial-gradient(top, ellipse cover,  #FFDD6B 1%, #FFB401 29%, #E87706 99%);
+}
+
+.gameboard {
+  background-color: black;
+  float: right;
+  width: 60%;
+  height: 700px;
+}
+
+.myscore {
+  width: 502px;
+  margin: auto;
+  color: #E87706;
+  font-size: 18px;
+  padding: 15px;
+}
     </style>
   </head>
   <body>
     <div class="game-arena">
       <div class="leaderboards">
-
+        <div class="currentGame">
+          
+        </div>
       </div>
       <div class="gameboard">
+        <div class="myscore">
+          Words: <span class="words"></span><br/>
+          Score: <span class="score"></span><br/>
+          Time Left: <span class="time"></span>
+        </div>
+        <div class="gamegrid">
 
+        </div>
       </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
 
-    var grid = [[{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
-    [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
-    [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
-    [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}]];
-    function gameStart(grid) {
-      debugger;
-      var gridCell;
-      for(var i=0; i<4; i++) {
-        for(var j=0; j<4; j++) {
-          gridCell = $('<div class="cell">' + grid[i][j].char + '<div>');
-          $('.gameboard').append(gridCell);
-        }
-      }
-    }
-
-    gameStart(grid);
-
       $(function () {
+
         var socket = io();
+        var selecting = false;
+        var selectedCoordinates = [];
+        var currentWord = '';
+        var lastCoordinate = '';
+        var seconds;
+        var timerPromise;
+
+        var grid = [[{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
+        [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
+        [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}],
+        [{char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}, {char:'A', score: 1}]];
+
+        function gameStart(grid) {
+          seconds = 120;
+          var gridCell;
+          for(var i=0; i<4; i++) {
+            for(var j=0; j<4; j++) {
+              gridCell = $('<div class="cell cell-' + j + '"><div class="selectable"><span>'+ grid[i][j].score+'</span><div class="alphabet">' + grid[i][j].char + '</div></div></div>');
+              gridCell.bind('mousedown', getMouseDown(i, j, grid[i][j]));
+              $('.gamegrid').append(gridCell);
+              
+              gridCell.find('.selectable').bind('mouseover', getMouseOver(i, j, grid[i][j]));
+              $('.gamegrid').append(gridCell);
+            }
+          }
+          $('body').bind('mouseup', postWord);
+          $('.myscore .time').html(seconds);
+          timerPromise = setTimeout(reduceSecond, 1000);
+        }
+
+        function reduceSecond() {
+          seconds--;
+          $('.myscore .time').html(seconds);
+          if(seconds)
+            timerPromise = setTimeout(reduceSecond, 1000);
+        }
+
+        function getMouseDown(i, j, gridCell) {
+          return function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            selecting = true;
+            currentWord = gridCell.char;
+            lastCoordinate = ''+i+j;
+            selectedCoordinates = [lastCoordinate];
+            $(event.currentTarget).find('.selectable').addClass('selected');
+          }
+        }
+
+        function getMouseOver(i, j, gridCell) {
+          return function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!selecting) return;
+            var coordinate = '' + i + j;
+            if(coordinate == lastCoordinate) return;
+            if(selectedCoordinates.indexOf(coordinate) !== -1) {
+              postWord();
+              return;
+            }
+            lastCoordinate = coordinate;
+            selectedCoordinates.push(coordinate);
+            currentWord += gridCell.char;
+            $(event.currentTarget).addClass('selected');
+          }
+        }
+
+        function postWord() {
+          if(currentWord.length == 0) return;
+          socket.emit('attempt_word', currentWord);
+          selecting = false;
+          currentWord = '';
+          selectedCoordinates = [];
+          $('.selected').removeClass('selected');
+        }
+
+
+        gameStart(grid);
+
+      
+        
         $('form').submit(function(){
           socket.emit('chat message', $('#m').val());
           $('#m').val('');
